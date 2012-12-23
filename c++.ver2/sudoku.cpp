@@ -36,7 +36,7 @@ Dot::Dot(int v, int x, int y, bool e):value(v), x(x), y(y), editable(e){};
 inline int Dot::get_value(void){ return value; }
 inline bool Dot::arrival_max(void){ return (value == 9); }
 inline void Dot::reset_value(void) { value = 0; }
-inline void Dot::set_new_value(void){ if(editable) ++value; }
+inline void Dot::set_new_value(void){ ++value; }
 inline bool Dot::is_editable(void){ return editable; }
 inline int Dot::get_x(void){ return x; }
 inline int Dot::get_y(void){ return y; }
@@ -69,7 +69,7 @@ class Sudoku
         run_step_t sudoku_step;
         int _step;
 
-        bool _check(const vector<int>&);
+        bool _check(vector<int>&);
 };
 
 inline void Sudoku::add_step(const iter_pos_t &pos)
@@ -86,9 +86,9 @@ void Sudoku::initialize(const vector< vector<int> >& vvv)
 {
     line_t line;
     int x=0, y=0;
-    for(auto vv: vvv)
+    for(auto &vv: vvv)
     {
-        for(auto v: vv)
+        for(auto &v: vv)
         {
             Dot d(v, x++, y, v==0);
             line.push_back(d);
@@ -154,17 +154,19 @@ void Sudoku::run(void)
 
 inline bool Sudoku::check_not_same(const line_t::iterator d)
 {
-    return (check_row(d->get_y()) && check_column(d->get_x()) 
-            && check_square(d->get_y(), d->get_x())
-            );
+    int y = d->get_y();
+    int x = d->get_x();
+    return (check_row(y) && check_column(x) && check_square(y, x));
 }
 
 
 inline bool Sudoku::check_row(int y)
 {
     vector<int> row;
-    for(auto v: sudoku[y])
-        row.push_back(v.get_value());
+    for(auto &v: sudoku[y])
+    {
+        if(v.get_value() > 0) row.push_back(v.get_value());
+    }
     return _check(row);
 }
 
@@ -172,8 +174,10 @@ inline bool Sudoku::check_row(int y)
 inline bool Sudoku::check_column(int x)
 {
     vector<int> column;
-    for(auto v: sudoku)
-        column.push_back(v[x].get_value());
+    for(auto &v: sudoku)
+    {
+        if(v[x].get_value() > 0) column.push_back(v[x].get_value());
+    }
     return _check(column);
 }
 
@@ -188,23 +192,21 @@ inline bool Sudoku::check_square(int y, int x)
     for(int _y=y_min; _y<=y_max; _y++)
     {
         for(int _x=x_min; _x<=x_max; _x++)
-            square.push_back( sudoku[_y][_x].get_value() );
+        {
+            if(sudoku[_y][_x].get_value() > 0)
+                square.push_back( sudoku[_y][_x].get_value() );
+        }
     }
 
     return _check(square);
 }
 
 
-inline bool Sudoku::_check(const vector<int> &values)
+inline bool Sudoku::_check(vector<int> &values)
 {
-    vector<int> tmp;
-    for(auto v: values)
-    {
-        if(v!=0) tmp.push_back(v);
-    }
-    sort(tmp.begin(), tmp.end());
-    vector<int>::iterator unique_iter = unique(tmp.begin(), tmp.end());
-    return (unique_iter == tmp.end());
+    sort(values.begin(), values.end());
+    vector<int>::iterator unique_iter = unique(values.begin(), values.end());
+    return (unique_iter == values.end());
 }
 
 
