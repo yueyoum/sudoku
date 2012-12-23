@@ -1,0 +1,5 @@
+*
+!.gitignore
+!Makefile
+!sudoku.cpp
+!sudoku.txt
